@@ -10,10 +10,10 @@ def load_trained_model(weights_path, config_file_path):
     config = load_config(config_file_path)
 
     model = StockPricePredictor(
-        feature_dim=config["feature_dim"],  # e.g., 'Price', 'Open' 'High', 'Low', 'Vol.'
+        feature_dim=config["feature_dim"],
         embed_dim=config["embed_dim"],
-        seq_len_past=config["seq_len_past"],  # 30 days of history
-        seq_len_future=config["seq_len_future"],  # 5 days forecast
+        seq_len_past=config["seq_len_past"],
+        seq_len_future=config["seq_len_future"],
         num_heads=config["num_heads"],
         num_layers=config["num_layers"],
         ff_dim=config["ff_dim"],
@@ -53,7 +53,7 @@ def infer_and_plot(model, test_loader, seq_len_future):
             batch_output = batch_output.to(device)
 
             # Get initial OHLC for generating future predictions
-            initial_ohlc = batch_input[:, -1:, :]  # Assuming OHLC are the first 4 features
+            initial_ohlc = batch_input[:, -1:, :]
 
             # Generate predictions
             predictions = model.generate(
@@ -88,4 +88,5 @@ def infer_and_plot(model, test_loader, seq_len_future):
         plt.xlabel("Time Steps")
         plt.ylabel(f"{ohlc_labels[i]} Price")
         plt.legend()
+        plt.tight_layout()
         plt.show()

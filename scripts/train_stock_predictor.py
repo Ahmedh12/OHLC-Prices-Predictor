@@ -10,6 +10,8 @@ from data.data_loader import get_data_loaders
 import torch
 import torch.optim as optim
 
+from config.utils import load_config
+
 def train_model(model, dataloader, num_epochs=10, lr=0.001, save_path="model.pth"):
     # Set model to training mode
     model.train()
@@ -85,23 +87,22 @@ def evaluate_model(model, test_dataloader):
 # Example usage of the training and evaluation loop
 if __name__ == "__main__":
     # Initialize the model with hyperparameters
+    config = load_config("../config/config_1.json")
+
     model = StockPricePredictor(
-        feature_dim=4,  # e.g., 'Price', 'Open' 'High', 'Low', 'Vol.'
-        embed_dim=64,
-        seq_len_past=30,  # 30 days of history
-        seq_len_future=5,  # 5 days forecast
-        num_heads=4,
-        num_layers=2,
-        ff_dim=128,
-        dropout=0.1
+        feature_dim=config["feature_dim"],
+        embed_dim=config["embed_dim"],
+        seq_len_past=config["seq_len_past"],
+        seq_len_future=config["seq_len_future"],
+        num_heads=config["num_heads"],
+        num_layers=config["num_layers"],
+        ff_dim=config["ff_dim"],
+        dropout=config["dropout"]
     ).to(get_device())
 
     # Initialize DataLoader
-    train_dataloader, test_data_loader = get_data_loaders('../data/processed/EGX 30 Historical Data_010308_280218_processed.csv', batch_size=64)
-    train_loss = train_model(model, train_dataloader, num_epochs=30, lr=0.0005, save_path="../weights/")
+    train_dataloader, test_data_loader = get_data_loaders('../data/processed/EGX 30 Historical Data_010308_280218_processed.csv', batch_size=64, config_file_path="../config/config_1.json")
+    train_loss = train_model(model, train_dataloader, num_epochs=50, lr=0.00025, save_path="../weights/")
 
     # After training, you can evaluate the model
     mse = evaluate_model(model, test_data_loader)
-
-    # trdl, _ = get_data_loaders('../data/processed/EGX 30 Historical Data_010318_281124_processed.csv', batch_size=64)
-    # mse2 = evaluate_model(model, trdl)

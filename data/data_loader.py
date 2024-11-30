@@ -1,6 +1,7 @@
-import pandas as pd
-import torch
 import os
+import torch
+import pandas as pd
+from config.utils import load_config
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 
@@ -46,11 +47,12 @@ class StockDataset(Dataset):
             return None
 
 
-def get_data_loaders(processed_data_path, batch_size=64):
+def get_data_loaders(processed_data_path, config_file_path ,batch_size=64):
     """
     Load the stock data from a CSV, split it into sequences (30 days of prices for input, 5 days for output),
     and return DataLoaders.
     :param processed_data_path: Path to processed stock data CSV
+    :param config_file_path:  Path to the model parameters
     :param batch_size: Batch size for DataLoader
     :return: DataLoader objects for training and testing
     """
@@ -59,6 +61,8 @@ def get_data_loaders(processed_data_path, batch_size=64):
         data = pd.read_csv(processed_data_path)
     else:
         raise FileNotFoundError(f"File {processed_data_path} not found.")
+
+    config = load_config(config_file_path)
 
     # Define target columns (OHLC)
     target_columns = ['Price', 'Open', 'High', 'Low']
@@ -69,49 +73,11 @@ def get_data_loaders(processed_data_path, batch_size=64):
     test_data = data[train_size:]
 
     # Create datasets
-    train_dataset = StockDataset(train_data, target_columns)
-    test_dataset = StockDataset(test_data, target_columns)
+    train_dataset = StockDataset(train_data, target_columns, history_length= config["seq_len_past"], forecast_length=config["seq_len_future"])
+    test_dataset = StockDataset(test_data, target_columns, history_length= config["seq_len_past"], forecast_length=config["seq_len_future"])
 
     # Create DataLoaders
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=False)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
     return train_loader, test_loader
-
-
-def main():
-    # Path to the raw stock data CSV file
-    file_path = 'processed/EGX 30 Historical Data_010308_280218_processed.csv'  # Update this with the actual file path
-
-    # Example columns (adjust as per your actual columns)
-    target_columns = ['Price', 'Open', 'High', 'Low']  # These are OHLC columns
-
-    # Load raw stock data into pandas DataFrame
-    data = pd.read_csv(file_path)
-
-    # Create the dataset using the StockDataset class
-    history_length = 2  # 30 days of history
-    forecast_length = 1  # Predict the next 5 days
-    dataset = StockDataset(data, target_columns, history_length, forecast_length)
-
-    # Create DataLoader for batching
-    batch_size = 1
-    train_loader = DataLoader(dataset, batch_size=batch_size)
-
-    # Test the data loader by iterating through the DataLoader
-    for batch_idx, (inputs, targets) in enumerate(train_loader):
-        if inputs is None or targets is None:
-            continue  # Skip None batches
-
-        print(f"Batch {batch_idx + 1}")
-        print(f"Input shape: {inputs.shape}, Target shape: {targets.shape}")
-        print(f"Inputs (first batch): {inputs[:5]}")
-        print(f"Targets (first batch): {targets[:5]}")
-        print("-" * 50)
-
-        if batch_idx >= 3:  # Limiting to the first 3 batches for brevity
-            break
-
-
-if __name__ == "__main__":
-    main()
