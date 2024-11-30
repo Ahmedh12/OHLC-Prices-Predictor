@@ -12,8 +12,8 @@ class StockDataset(Dataset):
         Custom Dataset for loading stock data for prediction with an autoregressive model.
         :param data: DataFrame with stock features
         :param target_columns: List of target column names (OHLC)
-        :param history_length: Number of previous days (30 days for input)
-        :param forecast_length: Number of future days to predict (5 days for output)
+        :param history_length: Number of previous days
+        :param forecast_length: Number of future days to predict
         """
         self.data = data
         self.target_columns = target_columns
