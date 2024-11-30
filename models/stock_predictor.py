@@ -39,30 +39,45 @@ class StockPricePredictor(nn.Module):
 
         return output
 
-    def generate(self, encoder_input, initial_price, future_steps):
+    def generate(self, encoder_input, initial_prices, future_steps):
         """
-        Generate future prices autoregressive.
+        Generate future OHLC prices autoregressively.
+
         Args:
-        - encoder_input: (batch_size, seq_len_past, feature_dim)
-        - initial_price: (batch_size, 1, 1) Starting price for future predictions.
-        - future_steps: int Number of future steps to predict.
+        - encoder_input: (batch_size, seq_len_past, feature_dim) Past price history.
+        - initial_prices: (batch_size, 1, 4) Initial OHLC prices to start predictions.
+        - future_steps: int, Number of future steps to predict.
+
+        Returns:
+        - Tensor of shape (batch_size, future_steps, 4) with predicted OHLC values.
         """
         # Encode past sequence
         encoder_emb = self.encoder_embeddings(encoder_input) + self.encoder_positional_encoding
         encoder_output, _ = self.encoder(encoder_emb)
 
-        # Autoregressive decoding
-        generated = []
-        decoder_input = initial_price
-        for _ in range(future_steps):
-            decoder_emb = self.decoder_embeddings(decoder_input) + self.decoder_positional_encoding[:, :1, :]
+        # Initialize variables for autoregressive decoding
+        predictions = []
+        decoder_input = initial_prices  # Start with the provided initial OHLC prices
+
+        for step in range(future_steps):
+            # Embed the decoder input
+            decoder_emb = self.decoder_embeddings(decoder_input) + self.decoder_positional_encoding[:,
+                                                                   :decoder_input.size(1), :]
+
+            # Decode using the encoder's output and the decoder's previous outputs
             decoder_output = self.decoder(decoder_emb, encoder_output)
-            next_price = self.output_layer(decoder_output[:, -1:, :])  # Predict next price
-            generated.append(next_price)
-            decoder_input = torch.cat((decoder_input, next_price), dim=1)  # Update decoder input
 
-        return torch.cat(generated, dim=1)  # Concatenate all predictions
+            # Predict the next OHLC values
+            next_ohlc = self.output_layer(decoder_output[:, -1:, :])  # Only the last time step
 
+            # Append the prediction
+            predictions.append(next_ohlc)
+
+            # Update decoder input with the new OHLC value
+            decoder_input = torch.cat((decoder_input, next_ohlc), dim=1)
+
+        # Concatenate all predictions along the time dimension
+        return torch.cat(predictions, dim=1)
 
 
 

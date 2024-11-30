@@ -41,13 +41,30 @@ class TestStockPricePredictor(unittest.TestCase):
     def test_generate_method(self):
         """Test the generate method of the model."""
         batch_size = 4
+        seq_len_past = 30
+        feature_dim = 6
+        seq_len_future = 10
+
+        # Create model instance
+        model = StockPricePredictor(
+            feature_dim=feature_dim,
+            embed_dim=64,
+            seq_len_past=seq_len_past,
+            seq_len_future=seq_len_future,
+            num_heads=4,
+            num_layers=2,
+            ff_dim=128
+        )
+        model.eval()  # Set to evaluation mode
+
         # Generate dummy data
-        encoder_input = torch.randn(batch_size, self.seq_len_past, self.feature_dim)  # Historical features
-        initial_ohlc = torch.randn(batch_size, 1, 4)                                  # Initial OHLC values
-        future_steps = 10                                                             # Number of future steps
+        encoder_input = torch.randn(batch_size, seq_len_past, feature_dim)  # Historical features
+        initial_ohlc = torch.randn(batch_size, 1, 4)  # Initial OHLC values
+        future_steps = seq_len_future  # Number of future steps
 
         # Generate predictions
-        generated_output = self.model.generate(encoder_input, initial_ohlc, future_steps)
+        with torch.no_grad():  # Ensure no gradients are calculated
+            generated_output = model.generate(encoder_input, initial_ohlc, future_steps)
 
         # Assertions
         self.assertEqual(
@@ -55,6 +72,17 @@ class TestStockPricePredictor(unittest.TestCase):
             (batch_size, future_steps, 4),
             f"Expected generated output shape (batch_size, future_steps, 4), got {generated_output.shape}"
         )
+
+        # Check values for anomalies
+        self.assertFalse(
+            torch.isnan(generated_output).any(),
+            "Generated output contains NaN values."
+        )
+        self.assertFalse(
+            torch.isinf(generated_output).any(),
+            "Generated output contains infinite values."
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

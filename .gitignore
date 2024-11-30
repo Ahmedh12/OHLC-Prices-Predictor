@@ -222,3 +222,4 @@ pip-wheel-metadata/
 #############################################PROJECT_SPECIFIC#####################################
 data/processed
 data/raw
+weights/

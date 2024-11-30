@@ -1,19 +1,16 @@
-import torch
-import torch.optim as optim
+import os
 import torch.nn as nn
 import numpy as np
 from sklearn.metrics import mean_squared_error
-from sympy.core.random import shuffle
-
+from datetime import datetime
 from models.transformer.utils import get_device
 from models.stock_predictor import StockPricePredictor
 from data.data_loader import get_data_loaders
 
 import torch
 import torch.optim as optim
-import random
 
-def train_model(model, dataloader, num_epochs=10, lr=0.001, teacher_forcing_ratio=0.5):
+def train_model(model, dataloader, num_epochs=10, lr=0.001, save_path="model.pth"):
     # Set model to training mode
     model.train()
 
@@ -21,35 +18,23 @@ def train_model(model, dataloader, num_epochs=10, lr=0.001, teacher_forcing_rati
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
 
-    # Track metrics
-    all_train_loss = []
+    best_loss = float('inf')  # Initialize best_loss to a large value
 
     for epoch in range(num_epochs):
         epoch_loss = 0
         num_batches = 0
 
         for batch_input, batch_output in dataloader:
-            # Move data to the appropriate device (GPU/CPU)
             batch_input = batch_input.to(get_device())
             batch_output = batch_output.to(get_device())
 
-            # Clear previous gradients
             optimizer.zero_grad()
 
-            # Initialize the decoder input (start with zeros)
-            decoder_input = torch.zeros(batch_input.size(0), model.seq_len_future, 4).to(get_device())
+            # Forward pass with teacher forcing
+            decoder_input = torch.zeros(batch_input.size(0), model.seq_len_future, 4).to(get_device())  # Initialize decoder input (zero sequence)
+            outputs = model(batch_input, decoder_input)
 
-            # Determine whether to use teacher forcing
-            use_teacher_forcing = True if random.random() < teacher_forcing_ratio else False
-
-            if use_teacher_forcing:
-                # Use ground truth as input to decoder during training (Teacher Forcing)
-                outputs = model(batch_input, batch_output)
-            else:
-                # Use model's own previous prediction as input to decoder
-                outputs = model(batch_input, decoder_input)
-
-            # Calculate the loss
+            # Calculate loss
             loss = criterion(outputs, batch_output)
             epoch_loss += loss.item()
 
@@ -59,42 +44,42 @@ def train_model(model, dataloader, num_epochs=10, lr=0.001, teacher_forcing_rati
 
             num_batches += 1
 
-        # Calculate average loss for the epoch
         avg_epoch_loss = epoch_loss / num_batches
-        all_train_loss.append(avg_epoch_loss)
-
         print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {avg_epoch_loss:.4f}")
 
-    return all_train_loss
+        # Save the model if it achieves the best loss
+        if avg_epoch_loss < best_loss:
+            best_loss = avg_epoch_loss
+            torch.save(model.state_dict(), os.path.join(save_path, f"model_{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}_epoch{epoch+1}_mse{best_loss}.pth"))
+            print(f"Model saved at epoch {epoch+1}")
 
+    return avg_epoch_loss
 
-def evaluate_model(model, dataloader):
+def evaluate_model(model, test_dataloader):
     model.eval()  # Set model to evaluation mode
     all_true = []
     all_pred = []
 
-    with torch.no_grad():  # No gradients needed during evaluation
-        for batch_input, batch_output in dataloader:
-            # Move data to the appropriate device (GPU/CPU)
+    with torch.no_grad():
+        for batch_input, batch_output in test_dataloader:
+            batch_size = len(batch_input)
             batch_input = batch_input.to(get_device())
             batch_output = batch_output.to(get_device())
+            initial_ohlc = torch.randn(batch_size, 1, 4).to(get_device())
+            # Generate predictions using the generate method
+            predictions = model.generate(batch_input, future_steps = model.seq_len_future, initial_prices = initial_ohlc)
 
-            # Forward pass
-            decoder_input = torch.zeros(batch_input.size(0), model.seq_len_future, 4).to(get_device())
-            outputs = model(batch_input, decoder_input)
+            all_true.append(batch_output.cpu().numpy())
+            all_pred.append(predictions.cpu().numpy())
 
-            # Collect predictions and true values
-            all_true.append(batch_output.cpu())
-            all_pred.append(outputs.cpu())
+    all_true = np.concatenate(all_true, axis=0)
+    all_pred = np.concatenate(all_pred, axis=0)
 
-    # Stack the lists and calculate MSE
-    all_true = torch.cat(all_true, dim=0).view(-1, 4)  # Flatten to (batch_size * future_steps, 4)
-    all_pred = torch.cat(all_pred, dim=0).view(-1, 4)  # Flatten to (batch_size * future_steps, 4)
-
-    # Calculate MSE using sklearn
-    mse = mean_squared_error(all_true, all_pred)
-
+    all_true_flat = all_true.reshape(-1, all_true.shape[-1])
+    all_pred_flat = all_pred.reshape(-1, all_pred.shape[-1])
+    mse = mean_squared_error(all_true_flat, all_pred_flat)
     print(f"Test MSE: {mse:.4f}")
+
     return mse
 
 # Example usage of the training and evaluation loop
@@ -113,10 +98,10 @@ if __name__ == "__main__":
 
     # Initialize DataLoader
     train_dataloader, test_data_loader = get_data_loaders('../data/processed/EGX 30 Historical Data_010308_280218_processed.csv', batch_size=64)
-    train_loss = train_model(model, train_dataloader, num_epochs=25, lr=0.0005)
+    train_loss = train_model(model, train_dataloader, num_epochs=30, lr=0.0005, save_path="../weights/")
 
     # After training, you can evaluate the model
     mse = evaluate_model(model, test_data_loader)
 
-    trdl, _ = get_data_loaders('../data/processed/EGX 30 Historical Data_010318_281124_processed.csv', batch_size=64)
-    mse2 = evaluate_model(model, trdl)
+    # trdl, _ = get_data_loaders('../data/processed/EGX 30 Historical Data_010318_281124_processed.csv', batch_size=64)
+    # mse2 = evaluate_model(model, trdl)
