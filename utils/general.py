@@ -3,7 +3,7 @@ import pandas as pd
 from config.utils import load_config
 from models.stock_predictor import StockPricePredictor
 
-def convertINT64ToDateStr(int64_date : list[int]):
+def convertINT64ToDateTimeObj(int64_date):
     return pd.to_datetime(int64_date)
 
 def load_trained_model(weights_path, config_file_path):

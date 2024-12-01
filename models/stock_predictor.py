@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 from models.transformer.encoder import Encoder
 from models.transformer.decoder import Decoder
-from models.transformer.utils import generate_causal_mask, get_device
+from models.transformer.utils import generate_causal_mask, get_device, get_relative_positional_encoding_tensor
 
 class StockPricePredictor(nn.Module):
     def __init__(self, feature_dim, embed_dim, seq_len_past, seq_len_future, num_heads, num_layers, ff_dim, dropout=0.1):
@@ -15,6 +15,9 @@ class StockPricePredictor(nn.Module):
         self.decoder_embeddings = nn.Linear(4, embed_dim) #OHLC prices
 
         #Positional Encoding
+        # self.encoder_positional_encoding = nn.Parameter(get_relative_positional_encoding_tensor(seq_len_past, embed_dim))
+        # self.decoder_positional_encoding = nn.Parameter(get_relative_positional_encoding_tensor(seq_len_future, embed_dim))
+
         self.encoder_positional_encoding = nn.Parameter(torch.zeros(1, seq_len_past, embed_dim))
         self.decoder_positional_encoding = nn.Parameter(torch.zeros(1, seq_len_future, embed_dim))
 
