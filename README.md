@@ -98,7 +98,6 @@ Stock Price Predictor/
 │   ├── stock_predictor.py    # Main model for stock prediction
 │
 ├── notebooks/                 # Jupyter notebooks for data exploration and model verification
-│   ├── .ipynb_checkpoints/   # Checkpoints for Jupyter notebooks
 │   ├── Data Exploration.ipynb
 │   └── model_verification.ipynb
 │
