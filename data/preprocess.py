@@ -1,8 +1,8 @@
 import os
-import pandas as pd
-from sklearn.preprocessing import MinMaxScaler
-
 import re
+import pickle
+import pandas as pd
+from sklearn.preprocessing import MinMaxScaler, RobustScaler
 
 
 def convert_to_float(value):
@@ -27,7 +27,6 @@ def convert_to_float(value):
             return float(value)
     return float(value)
 
-
 def load_data(file_path):
     """
     Load the stock price data from a CSV file.
@@ -38,21 +37,19 @@ def load_data(file_path):
     else:
         raise FileNotFoundError(f"File {file_path} not found.")
 
-
-def preprocess_data(data):
+def preprocess_data(data, scaler_save_path=None):
     """
     Preprocess the raw stock data by handling missing values, feature scaling, etc.
     """
     # Convert Date to datetime
     data['Date'] = pd.to_datetime(data['Date'])
 
-    data = data.drop('Change %', axis=1)
+    data.drop('Change %', axis=1 , inplace=True)
 
     # Handle missing values, if any
-    data = data.dropna(axis = 0, how = 'any')
+    data.dropna(axis = 0, how = 'any', inplace=True)
 
-    # Use MinMaxScaler to scale numerical features like 'Open', 'Close', etc.
-    scaler = MinMaxScaler()
+    scaler = RobustScaler()
     scaled_columns = ['Price', 'Open', 'High', 'Low', 'Vol.']
 
     for col in scaled_columns:
@@ -60,8 +57,13 @@ def preprocess_data(data):
 
     data.loc[:,scaled_columns] = scaler.fit_transform(data[scaled_columns])
 
-    return data
+    data.sort_values(by='Date', ascending=True, inplace=True)
 
+    if scaler_save_path is not None:
+        with open(scaler_save_path, "wb") as f:
+            pickle.dump(scaler,f)
+
+    return data
 
 def save_processed_data(data, save_path):
     """
@@ -72,7 +74,7 @@ def save_processed_data(data, save_path):
 
 
 
-def main(raw_data_path, processed_data_path):
+def main(raw_data_path, processed_data_path, scaler_save_path = None):
     """
     Main function that loads raw data, preprocesses it, and saves the processed data.
 
@@ -85,7 +87,7 @@ def main(raw_data_path, processed_data_path):
         raw_data = load_data(raw_data_path)
 
         # Preprocess the data
-        processed_data = preprocess_data(raw_data)
+        processed_data = preprocess_data(raw_data, scaler_save_path)
 
         # Save the processed data
         save_processed_data(processed_data, processed_data_path)
@@ -95,14 +97,17 @@ def main(raw_data_path, processed_data_path):
 
 
 if __name__ == "__main__":
-    raw_data_file = 'raw/'
-    processed_data_file = 'processed/'
+    raw_data_folder = 'raw'
+    processed_data_folder = 'processed'
+    scalers_folder = 'scalers'
 
     files = [
         "EGX 30 Historical Data_010308_280218",
-        "EGX 30 Historical Data_010318_281124"
+        "EGX 30 Historical Data_010318_281124",
+        "BTC_USD Bitfinex Historical Data_010308_280218",
+        "BTC_USD Bitfinex Historical Data_010318_281124",
     ]
 
     # Call the main function with the paths
     for file in files:
-        main(raw_data_file+file+".csv", processed_data_file+file+"_processed.csv")
+        main(f"{raw_data_folder}/{file}.csv", f"{processed_data_folder}/{file}_processed.csv", f"{scalers_folder}/{file}_scaler.pkl")

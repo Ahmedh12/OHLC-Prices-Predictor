@@ -1,33 +1,10 @@
-from models.stock_predictor import StockPricePredictor
+from data.data_loader import get_data_loaders
 from models.transformer.utils import get_device
-import matplotlib.pyplot as plt
+from .general import load_trained_model
 from config.utils import load_config
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
-
-def load_trained_model(weights_path, config_file_path):
-
-    config = load_config(config_file_path)
-
-    model = StockPricePredictor(
-        feature_dim=config["feature_dim"],
-        embed_dim=config["embed_dim"],
-        seq_len_past=config["seq_len_past"],
-        seq_len_future=config["seq_len_future"],
-        num_heads=config["num_heads"],
-        num_layers=config["num_layers"],
-        ff_dim=config["ff_dim"],
-        dropout=config["dropout"]
-    )
-
-    # Load weights
-    model.load_state_dict(torch.load(weights_path, map_location=torch.device('cpu'), weights_only=True))
-
-    # Set model to evaluation mode
-    model.eval()
-
-    return model
-
 
 
 def infer_and_plot(model, test_loader, seq_len_future):
@@ -47,8 +24,8 @@ def infer_and_plot(model, test_loader, seq_len_future):
     predicted_prices = []
 
     with torch.no_grad():
+        i = 0
         for batch_input, batch_output in test_loader:
-
             batch_input = batch_input.to(device)
             batch_output = batch_output.to(device)
 
@@ -79,14 +56,29 @@ def infer_and_plot(model, test_loader, seq_len_future):
     for i in range(4):
         plt.figure(figsize=(10, 6))
         plt.plot(
-            actual_prices[:, :, i].flatten(), label=f"Actual {ohlc_labels[i]}", color='blue', linestyle='--'
+            actual_prices[:, :, i].flatten(), label=f"Actual {ohlc_labels[i]}", color='blue'
         )
         plt.plot(
-            predicted_prices[:, :, i].flatten(), label=f"Predicted {ohlc_labels[i]}", color='orange'
+            predicted_prices[:, :, i].flatten(), label=f"Predicted {ohlc_labels[i]}", color='orange', linestyle='dotted'
         )
-        plt.title(f"{ohlc_labels[i]} Prices: Actual vs Predicted")
+        plt.title(f"{ohlc_labels[i]} : Actual vs Predicted")
         plt.xlabel("Time Steps")
-        plt.ylabel(f"{ohlc_labels[i]} Price")
+        plt.ylabel(f"{ohlc_labels[i]}")
         plt.legend()
         plt.tight_layout()
         plt.show()
+
+def test_model_plot_window(configuration_file,weights_file,test_data_file):
+    """
+    @param configuration_file: config file name , under directory config
+    @param weights_file: Weights file name , under directory weights/configuration_file
+    @param test_data_file: processed test data file name , under directory data/processed
+    """
+    weights_path = f"../weights/{configuration_file}/{weights_file}"
+    config_path = f"../config/{configuration_file}.json"
+    # Load the model
+    model = load_trained_model(weights_path, config_path)
+    print("Model loaded successfully.")
+    test_dataloader, _, _, _ = get_data_loaders(f"../data/processed/{test_data_file}",
+                                          batch_size=64, config_file_path=config_path)
+    infer_and_plot(model, test_dataloader, load_config(config_path)['seq_len_future'])

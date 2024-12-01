@@ -1,0 +1,10 @@
+{
+  "feature_dim": 4,
+  "embed_dim": 64,
+  "seq_len_past": 10,
+  "seq_len_future": 5,
+  "num_heads": 2,
+  "num_layers": 2,
+  "ff_dim": 128,
+  "dropout": 0.1
+}

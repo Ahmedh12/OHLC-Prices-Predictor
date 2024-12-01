@@ -1,6 +1,8 @@
 import os
 import torch
 import pandas as pd
+from pyarrow import int64
+
 from config.utils import load_config
 from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
@@ -26,49 +28,50 @@ class StockDataset(Dataset):
         return len(self.data) - self.history_length - self.forecast_length + 1
 
     def __getitem__(self, idx):
-        """
-        Get a sequence of 30 days of prices and the following 5 days of predictions.
-        If there is not enough data to create a full sequence, this will return None.
-        """
-        # Ensure we have enough data for both input (30 days) and output (5 days)
+        # Ensure we have enough data for both input
         if idx + self.history_length + self.forecast_length <= len(self.data):
-            # Input sequence: 30 days of previous data
             x = self.data.iloc[idx:idx + self.history_length][self.target_columns].values
             x = torch.tensor(x, dtype=torch.float32)
 
-            # Target sequence: next 5 days of prices
+
             y = self.data.iloc[idx + self.history_length:idx + self.history_length + self.forecast_length][
                 self.target_columns].values
             y = torch.tensor(y, dtype=torch.float32)
 
-            return x, y
+            x_dates = self.data.iloc[idx:idx + self.history_length]['Date'].astype('int64').values
+            y_dates = self.data.iloc[idx + self.history_length:idx + self.history_length + self.forecast_length]['Date'].astype('int64').values
+
+            return x, y , x_dates, y_dates
         else:
             # If not enough data, return None or skip this sequence
             return None
 
 
-def get_data_loaders(processed_data_path, config_file_path ,batch_size=64):
+def get_data_loaders(processed_data_path, config_file_path ,
+                     batch_size=64,
+                     train_test_split = 0.8,
+                     target_columns=None):
     """
     Load the stock data from a CSV, split it into sequences (30 days of prices for input, 5 days for output),
     and return DataLoaders.
     :param processed_data_path: Path to processed stock data CSV
-    :param config_file_path:  Path to the model parameters
+    :param config_file_path:  Path to the model parameters stored as json dict
     :param batch_size: Batch size for DataLoader
     :return: DataLoader objects for training and testing
     """
     # Load the processed data
+    if target_columns is None:
+        target_columns = ['Price', 'Open', 'High', 'Low']
     if os.path.exists(processed_data_path):
         data = pd.read_csv(processed_data_path)
+        data["Date"] = pd.to_datetime(data["Date"])
     else:
         raise FileNotFoundError(f"File {processed_data_path} not found.")
 
     config = load_config(config_file_path)
 
-    # Define target columns (OHLC)
-    target_columns = ['Price', 'Open', 'High', 'Low']
-
     # Split data into train and test (you can also split based on time)
-    train_size = int(0.8 * len(data))  # 80% for training, 20% for testing
+    train_size = int(train_test_split * len(data))  # 80% for training, 20% for testing
     train_data = data[:train_size]
     test_data = data[train_size:]
 

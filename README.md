@@ -1,4 +1,4 @@
-# Stock Price Prediction Using Transformer Models
+# Stock Price Prediction Using Modified Transformer Architecture
 
 This repository contains the implementation of a stock price prediction model using Transformer-based architecture. The model takes historical stock data as input and predicts future stock prices, specifically the **OHLC (Open, High, Low, Close)** prices, for a given period of time.
 
@@ -17,9 +17,7 @@ The project involves several components:
 6. [Training](#training)
 7. [Inference and Visualization](#inference-and-visualization)
 8. [Config File](#config-file)
-9. [Usage](#usage)
-10. [Contributing](#contributing)
-11. [License](#license)
+9. [License](#license)
 
 ## Project Overview
 
@@ -135,13 +133,13 @@ The project uses historical stock data (OHLC values) for training the model. The
 4. **Data Splitting**: The data is split into training and test datasets. A sliding window approach is often used for time-series data.
 5. **Sequence Creation**: Sequences of past stock prices (e.g., 30 days) are created as input features for the model.
 
-The preprocessing steps are handled in the `data_loader.py` file.
+The preprocessing steps are handled in the `preprocess.py` file.
 
 ---
 
 ## Model Architecture
 
-The model is built on the **Transformer** architecture, which is well-suited for sequence-based tasks.
+The model is built on a slightly modified **Transformer** architecture, which is well-suited for sequence-based tasks.
 
 ### Parameters:
 - `feature_dim`: Number of features for each time step (e.g., 4: OHLC).
@@ -168,7 +166,7 @@ The model is implemented in `stock_predictor.py` and consists of an encoder-deco
 
 ### Command to Train the Model:
 ```bash
-python scripts/train.py --config config/model_config.json
+python scripts/train_stock_predictor.py <learning_rate> <num_epochs> <model_config_id>
 ```
 
 ---
@@ -179,7 +177,7 @@ Once the model is trained, you can use it to predict future stock prices based o
 
 ### Inference
 
-Run the inference script (`infer.py`) to generate predictions from the trained model. This script takes a sequence of historical stock prices and predicts the future prices.
+Run the inference script (`visualizer.py`) to generate predictions from the trained model. This script takes a sequence of historical stock prices and predicts the future prices.
 
 
 ## Config File

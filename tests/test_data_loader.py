@@ -51,7 +51,7 @@ class TestStockDataset(unittest.TestCase):
         dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
 
         # Fetch one batch of data
-        for batch_idx, (inputs, targets) in enumerate(dataloader):
+        for batch_idx, (inputs, targets, _, _) in enumerate(dataloader):
             self.assertIsNotNone(inputs)
             self.assertIsNotNone(targets)
             self.assertEqual(inputs.shape[0], batch_size)  # Check if batch size is correct
@@ -72,9 +72,9 @@ class TestStockDataset(unittest.TestCase):
         dataloader = DataLoader(dataset, batch_size=2, shuffle=False)
 
         # Get the first two batches and check the order
-        first_batch_input, first_batch_output = next(iter(dataloader))
+        first_batch_input, _, _, dates = next(iter(dataloader))
 
-
+        print(dates)
         # Check if the second batch starts where the first batch ended (chronologically)
         self.assertTrue(torch.equal(first_batch_input[0][1:], first_batch_input[1][0:-1]))
 
