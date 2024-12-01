@@ -51,7 +51,7 @@ To run the code, ensure you have the following dependencies installed:
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/your-repository/stock-price-prediction.git
+   git clone https://github.com/Ahmedh12/OHLC-Prices-Predictor.git
    cd "stock Price Predictor"
    ```
 
