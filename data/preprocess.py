@@ -49,7 +49,7 @@ def preprocess_data(data, scaler_save_path=None):
     # Handle missing values, if any
     data.dropna(axis = 0, how = 'any', inplace=True)
 
-    scaler = RobustScaler()
+    scaler = MinMaxScaler()
     scaled_columns = ['Price', 'Open', 'High', 'Low', 'Vol.']
 
     for col in scaled_columns:

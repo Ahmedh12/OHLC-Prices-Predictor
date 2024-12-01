@@ -12,7 +12,8 @@ def infer_and_plot(model,
                    seq_len_future,
                    num_features=4,
                    plot_labels=None,
-                   pred_cycle_count=0):
+                   pred_cycle_count=0,
+                   predict_earliest=True):
     """
     Generates predictions from the model and plots them against actual data.
 
@@ -23,6 +24,7 @@ def infer_and_plot(model,
         num_features: Number of features to predict
         plot_labels: List of labels of names of features , len(plot_labels) = num_features
         pred_cycle_count : number of prediction cycles to plot
+        predict_earliest : weather to start counting the windows from the beginning or the end
     """
     device = get_device()  # Ensure all tensors are on the same device
     model.to(device)  # Move model to the correct device
@@ -31,12 +33,24 @@ def infer_and_plot(model,
     actual_prices = []
     predicted_prices = []
     dates = []
-    if pred_cycle_count == 0:
+    if pred_cycle_count <= 0:
         pred_cycle_count = len(test_loader)
+    elif pred_cycle_count > len(test_loader):
+        pred_cycle_count = len(test_loader)
+
+    def skip_windows():
+        if predict_earliest:
+            return idx >= pred_cycle_count
+        else:
+            return idx < len(test_loader) - pred_cycle_count
+
     with torch.no_grad():
         for idx , (batch_input, batch_output, _, output_dates) in enumerate(test_loader):
-            if idx < len(test_loader) - pred_cycle_count: #predict from the end of the year
+            if predict_earliest and skip_windows(): #predict from the end of the year
+                break
+            elif not predict_earliest and skip_windows():
                 continue
+
             batch_input = batch_input.to(device)
             batch_output = batch_output.to(device)
             initial_ohlc = batch_input[:, -1:, :]
@@ -84,7 +98,8 @@ def infer_and_plot(model,
 def test_model_plot_window(configuration_file,
                            weights_file,
                            test_data_file,
-                           pred_cycle_count=None):
+                           pred_cycle_count=0,
+                           predict_earliest=True):
     """
     @param configuration_file: config file name , under directory config
     @param weights_file: Weights file name , under directory weights/configuration_file
@@ -102,4 +117,5 @@ def test_model_plot_window(configuration_file,
     infer_and_plot(model,
                    loader,
                    load_config(config_path)['seq_len_future'],
-                   pred_cycle_count = pred_cycle_count)
+                   pred_cycle_count = pred_cycle_count,
+                   predict_earliest = predict_earliest)
