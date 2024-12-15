@@ -74,7 +74,6 @@ class TestStockDataset(unittest.TestCase):
         # Get the first two batches and check the order
         first_batch_input, _, _, dates = next(iter(dataloader))
 
-        print(dates)
         # Check if the second batch starts where the first batch ended (chronologically)
         self.assertTrue(torch.equal(first_batch_input[0][1:], first_batch_input[1][0:-1]))
 
