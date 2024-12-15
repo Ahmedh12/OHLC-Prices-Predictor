@@ -196,6 +196,40 @@ Example of `model_config.json`:
     "dropout": 0.1
 }
 ```
+## Model Evaluation 
+
+The model was evaluated using historical **EGX30** data spanning from **01-Mar-2018** to **28-Nov-2024**. This dataset was used to assess the model's ability to predict key stock metrics such as **Price**, **Open**, **High**, and **Low**.
+
+
+### Plots (Actual Vs. Predicted)
+
+| Close                        | Open                       |
+|------------------------------|-----------------------------|
+| ![Image 1](images/Price.png) | ![Image 2](images/Open.png) |
+
+| High                  | Low                        |
+|----------------------------|----------------------------|
+| ![Image 1](images/High.png) | ![Image 2](images/Low.png) |
+
+
+
+### Metrics
+The table below provides the evaluation metrics for the model predictions across different features (Close, Open, High, Low):
+
+| Metric                         | Close  | Open    | High    | Low     |
+|--------------------------------|--------|---------|---------|---------|
+| **Mean Absolute Error (MAE)**  | 0.0740 | 0.0400  | 0.0569  | 0.0329  |
+| **Mean Squared Error (MSE)**   | 0.0108 | 0.0025  | 0.0043  | 0.0026  |
+| **Root Mean Squared Error (RMSE)** | 0.1038 | 0.0502  | 0.0658  | 0.0507  |
+| **R-squared (R²)**             | 0.8150 | 0.9565  | 0.9214  | 0.9543  |
+
+#### Key Notes:
+- **MAE (Mean Absolute Error):** Indicates the average magnitude of errors in predictions.
+- **MSE (Mean Squared Error):** Measures the average of squared differences between predicted and actual values.
+- **RMSE (Root Mean Squared Error):** The square root of MSE, providing errors in the same unit as the target variable.
+- **R² (R-squared):** Explains the proportion of variance in the dependent variable that is predictable from the independent variable.
+ed):** Explains the proportion of variance in the dependent variable that is predictable from the independent variable.
+
 
 ## License
 

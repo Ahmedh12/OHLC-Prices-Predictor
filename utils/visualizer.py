@@ -72,7 +72,8 @@ def plot(plot_labels,
          num_features,
          dates,
          actual_prices,
-         predicted_prices):
+         predicted_prices,
+         save_file_path = None):
 
     for i in range(num_features):
         plt.figure(figsize=(10, 6))
@@ -87,7 +88,11 @@ def plot(plot_labels,
         plt.xlabel("Time Steps")
         plt.ylabel(f"{plot_labels[i]}")
         plt.legend()
+        if save_file_path is not None:
+            plt.savefig(f"{save_file_path}/{plot_labels[i]}.png", dpi=300, bbox_inches='tight')
         plt.show()
+
+
 
 def infer_and_plot(model,
                    test_loader,
@@ -95,7 +100,8 @@ def infer_and_plot(model,
                    num_features=4,
                    plot_labels=None,
                    pred_cycle_count=0,
-                   predict_earliest=True):
+                   predict_earliest=True,
+                   save_file_path = None):
 
     if plot_labels is None:
         plot_labels = ['Price', 'Open', 'High', 'Low']
@@ -112,7 +118,8 @@ def infer_and_plot(model,
         num_features    = num_features,
         dates           = dates,
         actual_prices   = actual_prices,
-        predicted_prices= predicted_prices)
+        predicted_prices= predicted_prices,
+        save_file_path  = save_file_path)
 
     return [(plot_labels[i], actual_prices[:, :, i].flatten(), predicted_prices[:, :, i].flatten()) for i in range(num_features)]
 
@@ -121,7 +128,8 @@ def test_model_plot_window(configuration_file,
                            test_data_file,
                            pred_cycle_count=0,
                            predict_earliest=True,
-                           print_eval_metrics = True):
+                           print_eval_metrics = True,
+                           save_file_path = None):
     """
     @param configuration_file: config file name , under directory config
     @param weights_file: Weights file name , under directory weights/configuration_file
@@ -139,7 +147,8 @@ def test_model_plot_window(configuration_file,
                                loader,
                                config['seq_len_future'],
                                pred_cycle_count = pred_cycle_count,
-                               predict_earliest = predict_earliest)
+                               predict_earliest = predict_earliest,
+                               save_file_path = save_file_path)
 
     if print_eval_metrics:
         for i in range(config['feature_dim']):
