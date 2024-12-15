@@ -188,10 +188,10 @@ Example of `model_config.json`:
 {
     "feature_dim": 4,
     "embed_dim": 64,
-    "seq_len_past": 30,
+    "seq_len_past": 5,
     "seq_len_future": 5,
     "num_heads": 4,
-    "num_layers": 2,
+    "num_layers": 1,
     "ff_dim": 128,
     "dropout": 0.1
 }
