@@ -60,12 +60,6 @@ To run the code, ensure you have the following dependencies installed:
    conda create --name <env> --file requirments.txt
    conda activate <env>
    ```
-   
-3. **Install PyTorch** (if not included in the requirements file):
-   ```bash
-   conda install torch torchvision torchaudio
-   ```
-
 ---
 
 ## File Structure
@@ -105,8 +99,14 @@ Stock Price Predictor/
 │   ├── __init__.py           # Initialization file for scripts package
 │   ├── train_stock_predictor.py # Script to train the model
 │
-├── tests/                     # Unit tests for the project
-│   ├── __init__.py           # Initialization file for tests package
+├── tests/                        # Unit tests for the project
+│   ├── __init__.py               # Initialization file for tests package
+|   ├── test_attention.py         # test cases to test transformer's attention
+|   ├── test_data_loader.py       # test cases to test data loader
+|   ├── test_decoder.py           # test cases to test transformer's decoder
+|   ├── test_encoder.py           # test cases to test transformer's encoder
+|   ├── test_feedforward.py       # test cases to test transformer's feedforward
+│   └── test_stock_predictor.py   # test cases to test stock predictor transformer
 │
 ├── utils/                     # Utility functions for various tasks
 │   ├── __init__.py           # Initialization file for utils package
