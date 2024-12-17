@@ -200,7 +200,6 @@ Example of `model_config.json`:
 
 The model was evaluated using historical **EGX30** data spanning from **01-Mar-2018** to **28-Nov-2024**. This dataset was used to assess the model's ability to predict key stock metrics such as **Price**, **Open**, **High**, and **Low**.
 
-
 ### Plots (Actual Vs. Predicted)
 
 | Close                        | Open                       |
@@ -210,8 +209,6 @@ The model was evaluated using historical **EGX30** data spanning from **01-Mar-2
 | High                  | Low                        |
 |----------------------------|----------------------------|
 | ![Image 1](images/High.png) | ![Image 2](images/Low.png) |
-
-
 
 ### Metrics
 The table below provides the evaluation metrics for the model predictions across different features (Close, Open, High, Low):
@@ -228,9 +225,7 @@ The table below provides the evaluation metrics for the model predictions across
 - **MSE (Mean Squared Error):** Measures the average of squared differences between predicted and actual values.
 - **RMSE (Root Mean Squared Error):** The square root of MSE, providing errors in the same unit as the target variable.
 - **R² (R-squared):** Explains the proportion of variance in the dependent variable that is predictable from the independent variable.
-ed):** Explains the proportion of variance in the dependent variable that is predictable from the independent variable.
-
-
+  
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
