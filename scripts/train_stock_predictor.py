@@ -125,7 +125,7 @@ if __name__ == "__main__":
 
     # Initialize DataLoader
     train_dataloader, test_data_loader= get_data_loaders(
-                processed_data_path= '../data/processed/EGX 30 Historical Data_010308_280218_processed.csv',
+                processed_data_path= '../data/processed/China Merchants Bank_processed.csv',
                 batch_size=64,
                 config_file_path=config_file_path
         )

@@ -106,8 +106,11 @@ if __name__ == "__main__":
         "EGX 30 Historical Data_010318_281124",
         "BTC_USD Bitfinex Historical Data_010308_280218",
         "BTC_USD Bitfinex Historical Data_010318_281124",
+        "China Merchants Bank"
     ]
 
     # Call the main function with the paths
     for file in files:
-        main(f"{raw_data_folder}/{file}.csv", f"{processed_data_folder}/{file}_processed.csv", f"{scalers_folder}/{file}_scaler.pkl")
+        main(f"{raw_data_folder}/{file}.csv",
+             f"{processed_data_folder}/{file}_processed.csv",
+             f"{scalers_folder}/{file}_scaler.pkl")
